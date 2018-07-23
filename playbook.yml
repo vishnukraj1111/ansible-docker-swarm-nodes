@@ -1,0 +1,30 @@
+- name: Setup Docker Swarm Manager 2 and 3
+  hosts: secondary_ips
+  gather_facts: true
+  
+  vars: 
+    swarn_manager_port: 2377
+    workers : no
+    managers : yes
+    swarm_manager_token: "{{ lookup('file', './swarm_manager_token') }}"
+
+  become: yes
+
+  roles: 
+     - swarm_nodes
+
+
+- name: Setup Docker Swarm Workers
+  hosts: tag_swarmid_manager_workers
+  gather_facts: true
+  
+  vars: 
+    swarn_manager_port: 2377
+    workers : yes
+    managers : no
+    swarm_worker_token: "{{ lookup('file', './swarm_worker_token') }}"
+  become: yes
+
+  roles: 
+     - swarm_nodes
+

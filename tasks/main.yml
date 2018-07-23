@@ -1,0 +1,24 @@
+---
+  - name: Check docker installed
+    yum: name=docker state=present
+
+  - name: Making sure docker is running
+    service:
+      name: docker
+      state: started
+
+  - name: Check docker info
+    shell: docker info
+    changed_when: False
+    register: docker_info
+
+  - name: Join the pending Swarm worker nodes.
+    shell: docker swarm join --token {{ swarm_worker_token }}  {{ hostvars[groups['tag_swarmid_manager_primary'][0]].inventory_hostname }}:{{ swarn_manager_port }}
+    changed_when: False
+    when: "docker_info.stdout.find('Swarm: active') == -1 and docker_info.stdout.find('Swarm: pending') == -1 and workers"
+
+
+  - name: Join the pending Swarm manager nodes.
+    shell: docker swarm join --token {{ swarm_manager_token }}  {{ hostvars[groups['tag_swarmid_manager_primary'][0]].inventory_hostname }}:{{ swarn_manager_port }}
+    changed_when: False
+    when: "docker_info.stdout.find('Swarm: active') == -1 and docker_info.stdout.find('Swarm: pending') == -1 and managers"
